@@ -1,0 +1,32 @@
+functionality:
+	- listen for key inputs
+	- don't directly interfere with activities
+	- stay on top/popup suggestion near cursor
+	- don't steal inputs
+	- have active/disabled toggle
+	- have automatic/manual autocorect
+	- able to separately enable/disable autocomplete/spell checker
+	- stop detection when there's non-alpha characters
+	- detection runs, but only starts making suggestions at 3 or 4 word length
+	- max 5 suggestion limit
+	- everything lowercase, but suggestions may be shown capitalized/uppercase
+	- max allowed legnth difference from typed word to suggestion
+	- may consider keys proximity when making suggestions
+
+autocomplete implementation ideas:
+	- trie (prefix tree)
+	- frequency-based dictionary
+
+spell checker implementation ideas:
+	- edit distance (levenshtein distance)
+	- dictionary lookup
+	- candidate generation + ranking
+
+libraries:
+	- wordfreq https://pypi.org/project/wordfreq/
+	- levenshtein https://pypi.org/project/python-Levenshtein/
+	- pyqt5
+
+optional:
+	- learning from user input
+	- switch between auto/manual detection
