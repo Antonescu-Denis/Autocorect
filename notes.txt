@@ -1,6 +1,6 @@
 current goals:
 	- detect letters input - DONE
-	- detect mouse left click
+	- detect mouse left click - DONE
 	- store everything being typed in a string, each word being (assumably) separated by space
 	- stop reading keys when non-alpha characters are typed
 	- resume reading keys after space is pressed
