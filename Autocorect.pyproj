@@ -23,6 +23,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="funcvar.py" />
+    <Compile Include="gui.py" />
     <Compile Include="input.py" />
     <Compile Include="suggestions.py" />
   </ItemGroup>

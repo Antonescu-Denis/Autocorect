@@ -17,7 +17,7 @@ def key_press(key):
                 fv.update_word(key.char)
         except Exception:
             pass
-    print(f"full: {fv.full_txt}\n    last word: {fv.word}\n")
+    print(f"full: {fv.full_txt}\n    last word: {fv.word}\n\n\n")
 
 def left_click(x, y, button, pressed):
     if button == m.Button.left:
