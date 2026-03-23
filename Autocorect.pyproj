@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ddd721d8-55fb-4b7a-8632-93c87c0451c2</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>input.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,9 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="funcvar.py" />
-    <Compile Include="gui.py" />
-    <Compile Include="input.py" />
-    <Compile Include="suggestions.py" />
+    <Compile Include="words_gui.py" />
+    <Compile Include="words_input.py" />
+    <Compile Include="main.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="notes.txt" />

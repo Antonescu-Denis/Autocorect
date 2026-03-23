@@ -1,9 +1,11 @@
 full_txt = ''
 word = ''
 valid_word = True
+max_predict = 5
+suggestions = ['' for _ in range(max_predict)]
 
 def update_word(ch):
-    global full_txt, word, valid_word
+    global full_txt, word, valid_word, suggestions
     
     full_txt += ch
     if ch == ' ':
@@ -23,3 +25,5 @@ def update_word(ch):
     else:
         word = ''
         valid_word = False
+
+    suggestions = [word for _ in range(max_predict)]
