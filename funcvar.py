@@ -3,6 +3,7 @@ word = ''
 valid_word = True
 max_predict = 5
 suggestions = ['' for _ in range(max_predict)]
+ctrl = False
 
 def update_word(ch):
     global full_txt, word, valid_word, suggestions
@@ -20,10 +21,11 @@ def update_word(ch):
     elif ch == 'ent':
         full_txt = ''
         word = ''
-    elif ch.isalpha() and valid_word:
+    elif valid_word:
         word += ch
     else:
         word = ''
         valid_word = False
+    print(full_txt)
 
     suggestions = [word for _ in range(max_predict)]
