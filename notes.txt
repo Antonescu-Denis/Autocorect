@@ -1,29 +1,13 @@
 current goals:
-	- detect letters input - DONE
-	- detect mouse left click - DONE
-	- store everything being typed in a string, each word being (assumably) separated by space - DONE
-	- stop reading keys when non-alpha characters are typed - DONE
-	- resume reading keys after space is pressed - DONE
-	- create small ui with 5 word suggestions
-	- ui appears when left click, at cursor position
-	- ui dissapears when non-alpha characters except space
-	- temporarily, set the 5 suggestions to whatever is being typed
 
 functionality:
-	- listen for key inputs
-	- don't directly interfere with activities
-	- stay on top/popup suggestion near cursor
-	- don't steal inputs
 	- have active/disabled toggle
 	- have automatic/manual autocorect
 	- able to separately enable/disable autocomplete/spell checker
-	- stop detection when there's non-alpha characters
-	- detection runs, but only starts making suggestions at 3 or 4 word length
-	- max 5 suggestion limit
+	- detection runs, but only starts making suggestions at 3 word length
 	- everything lowercase, but suggestions may be shown capitalized/uppercase
-	- max allowed legnth difference from typed word to suggestion
+	- max allowed length difference from typed word to suggestion
 	- may consider keys proximity when making suggestions
-	- somehow manage cases where user goes to previous word
 
 autocomplete implementation ideas:
 	- trie (prefix tree)
@@ -40,5 +24,4 @@ libraries:
 	- pyqt5
 
 optional:
-	- learning from user input
 	- switch between auto/manual detection
