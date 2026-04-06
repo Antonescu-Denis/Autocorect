@@ -25,7 +25,7 @@ def key_press(key):
         toggle_window(False)
         repositions = 0
         if thing.auto.isChecked():
-            print(thing.buttons[0].text())
+            print(f"auto-{thing.buttons[0].text()}")
     elif key == Key.backspace:
         fv.update_word('del')
     elif key == Key.enter:
@@ -95,7 +95,8 @@ class Main_Menu(QMainWindow):
         toggle_window(False)
         fv.full_txt += ' '
         fv.word = ''
-        fv.suggestions = [fv.word for _ in range(fv.max_predict)] 
+        fv.suggestions = [fv.word for _ in range(fv.max_predict)]
+        print(self.sender().text())
 
     def initUI(self):
         w, h = 200, 50

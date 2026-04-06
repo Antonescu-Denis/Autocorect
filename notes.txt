@@ -33,3 +33,4 @@ bugs:
 		- input works fine
 		- calling update_suggestions(), even if empty, will crash
 	- when auto insert is enabled, space will trigger half, normally or double
+	- numbers don't make word invalid, and doesn't hide window
