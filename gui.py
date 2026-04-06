@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QApplication, QPushButton, QMainWindow
-from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication, QPushButton, QMainWindow, QCheckBox
+from PyQt5.QtGui import QFont, QCursor
 from PyQt5.QtCore import QTimer, Qt
 import funcvar as fv
 import sys
@@ -13,22 +13,26 @@ m_listen = None
 thing = None
 caps = False
 repositions = 0
-
+main_x, main_y = 400, 300
+last_x, last_y = 0, 0
+ 
 
 def key_press(key):
     global thing, caps, repositions
 
     if key == Key.space:
         fv.update_word(' ')
-        thing.hide()
+        toggle_window(False)
         repositions = 0
+        if thing.auto.isChecked():
+            print(thing.buttons[0].text())
     elif key == Key.backspace:
         fv.update_word('del')
     elif key == Key.enter:
         fv.update_word('ent')
-        thing.hide()
+        toggle_window(False)
     elif key == Key.caps_lock:
-        caps = True
+        caps = not caps
     elif key == Key.shift_l or key == Key.shift_r:
         pass
     else:
@@ -37,25 +41,30 @@ def key_press(key):
             if k:
                 fv.update_word(k.upper() if caps else k)
                 if fv.valid_word and k.isalpha() and k.isascii():
-                    thing.show()
+                    toggle_window(True)
         except Exception:
-            thing.hide()
+            if len(fv.word) == 0 or fv.valid_word == False:
+                toggle_window(False)  
+                 
+def left_click(x, y, button, pressed): 
+    global thing, repositions, main_x, main_y
 
-    if len(fv.word) == 0 or fv.valid_word == False:
-        thing.hide()
+    if button == m.Button.left:  
+        if pressed and repositions < 5:
+            temp = thing.mapFromGlobal(QCursor.pos())
+            if (temp.x() < 0 or temp.x() > main_x) or (temp.y() < -30 or temp.y() > main_y):
+                thing.move(x+10, y+50)
+                toggle_window(True)
+                repositions += 1
 
-    print(fv.valid_word)
-    print(f"full word: {fv.full_txt}\nword: {fv.word}\n")
-
-def left_click(x, y, button, pressed):
-    global thing, repositions
-
-    if button == m.Button.left:
-        if pressed and repositions < 3:
-            thing.show()
-            thing.move(x+10, y+50)
-            repositions += 1
-
+def toggle_window(active): 
+    global thing
+      
+    if not thing.stay. isChecked(): 
+        if active:
+            thing.showNormal()
+        else:
+            thing.showMinimized()
 
 class Main_Menu(QMainWindow):
     def __init__(self):
@@ -63,22 +72,41 @@ class Main_Menu(QMainWindow):
         
         self.buttons = [QPushButton(f"thing {f"{i}"*i}", self) for i in range(fv.max_predict)]
 
+        self.stay = QCheckBox(self)
+        self.stay.setText('Keep window active')
+        self.stay.setFont(QFont('Corbel', 14))
+        self.stay.setGeometry(10, 250, 180, 50//2)
+        self.stay.setStyleSheet('background-color: #ffffff')
+
+        self.auto = QCheckBox(self)
+        self.auto.setText('Auto-Insert')
+        self.auto.setFont(QFont('Corbel', 14))
+        self.auto.setGeometry(10, 275, 110, 50//2)
+        self.auto.setStyleSheet('background-color: #ffffff')
+
         self.initUI()
 
     def update_suggestions(self):
         for i in range(fv.max_predict):
-            self.buttons[i].setText(fv.suggestions[i])
+            self.buttons[i].setText(f"{i+1}: {fv.suggestions[i]}")
             self.buttons[i].adjustSize()
+
+    def insert_word(self):
+        toggle_window(False)
+        fv.full_txt += ' '
+        fv.word = ''
+        fv.suggestions = [fv.word for _ in range(fv.max_predict)] 
 
     def initUI(self):
         w, h = 200, 50
         for i in range(fv.max_predict):
             self.buttons[i].setFont(QFont('Corbel', 20))
-            self.buttons[i].setStyleSheet(f'color: {'#14a7cc' if i%2 == 0 else '#b714cc'};'
-                                          f'background-color: {'#a3c3cc' if i%2 == 0 else '#c6a3cc'};'
+            self.buttons[i].setStyleSheet(f"color: {'#14a7cc' if i%2 == 0 else '#b714cc'};"
+                                          f"background-color: {'#a3c3cc' if i%2 == 0 else '#c6a3cc'};"
                                           'font-weight: bold;')
             self.buttons[i].setGeometry(0, i*h, w, h)
             self.buttons[i].adjustSize()
+            self.buttons[i].clicked.connect(self.insert_word)
         
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_suggestions)
@@ -86,7 +114,7 @@ class Main_Menu(QMainWindow):
 
 
 if __name__ == '__main__':
-    kb_listen = kb.Listener(on_press = key_press)
+    kb_listen = kb.Listener(on_press = key_press) 
     m_listen = m.Listener(on_click = left_click)
     kb_listen.start()
     m_listen.start()
@@ -94,9 +122,10 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     
     thing = Main_Menu()
-    thing.setGeometry(0, 0, 400, 250)
+    thing.setGeometry(500, 100, main_x, main_y)
+    thing.setFixedSize(main_x, main_y)
     thing.setWindowTitle('Arcaea B30 Calculator :3')
-    thing.setWindowFlags(Qt.WindowStaysOnTopHint)
+    thing.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.Tool)
     thing.show()    
     
     sys.exit(app.exec_())

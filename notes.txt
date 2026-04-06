@@ -1,7 +1,6 @@
 current goals:
 
 functionality:
-	- have active/disabled toggle
 	- have automatic/manual autocorect
 	- able to separately enable/disable autocomplete/spell checker
 	- detection runs, but only starts making suggestions at 3 word length
@@ -25,3 +24,12 @@ libraries:
 
 optional:
 	- switch between auto/manual detection
+
+
+
+
+bugs:
+	- Ctrl+C crashes UI
+		- input works fine
+		- calling update_suggestions(), even if empty, will crash
+	- when auto insert is enabled, space will trigger half, normally or double

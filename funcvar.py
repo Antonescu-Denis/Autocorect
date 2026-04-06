@@ -29,7 +29,7 @@ def update_word(ch):
         else:
             valid_word = False
 
-    suggestions = [word for _ in range(max_predict)]
+    suggestions = [word for _ in range(max_predict)] 
 
     if len(full_txt) > 100:
         full_txt = full_txt[full_txt.rfind(' '):]
