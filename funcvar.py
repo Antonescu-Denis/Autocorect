@@ -15,9 +15,8 @@ def update_word(ch):
     elif ch == 'del' and len(full_txt) > 0:
         full_txt = full_txt[:-1]
         word = full_txt[full_txt.rfind(' ')+1:]
-        if not word.isalpha():
+        if not word.isalpha() or not word.isascii():
             valid_word = False
-            word = ''
     elif ch == 'ent':
         full_txt = ''
         word = ''
@@ -29,10 +28,10 @@ def update_word(ch):
         else:
             valid_word = False
 
-    suggestions = [word for _ in range(max_predict)] 
+    if not valid_word:
+        word = ''
 
-    if len(full_txt) > 100:
-        full_txt = full_txt[full_txt.rfind(' '):]
+    suggestions = [word for _ in range(max_predict)]
 
 def match_caps(og, ref):
     temp = ''

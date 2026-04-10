@@ -4,9 +4,8 @@ functionality:
 	- have automatic/manual autocorect
 	- able to separately enable/disable autocomplete/spell checker
 	- detection runs, but only starts making suggestions at 3 word length
-	- everything lowercase, but suggestions may be shown capitalized/uppercase
+	- everything lowercase when processing corrections/suggestions
 	- max allowed length difference from typed word to suggestion
-	- may consider keys proximity when making suggestions
 
 autocomplete implementation ideas:
 	- trie (prefix tree)
@@ -18,19 +17,6 @@ spell checker implementation ideas:
 	- candidate generation + ranking
 
 libraries:
-	- wordfreq https://pypi.org/project/wordfreq/
+	- wordfreq https://pypi.org/project/wordfreq/	
 	- levenshtein https://pypi.org/project/python-Levenshtein/
 	- pyqt5
-
-optional:
-	- switch between auto/manual detection
-
-
-
-
-bugs:
-	- Ctrl+C crashes UI
-		- input works fine
-		- calling update_suggestions(), even if empty, will crash
-	- when auto insert is enabled, space will trigger half, normally or double
-	- numbers don't make word invalid, and doesn't hide window

@@ -42,6 +42,8 @@ def key_press(key):
                 fv.update_word(k.upper() if caps else k)
                 if fv.valid_word and k.isalpha() and k.isascii():
                     toggle_window(True)
+                else:
+                    toggle_window(False)
         except Exception:
             if len(fv.word) == 0 or fv.valid_word == False:
                 toggle_window(False)  
@@ -108,10 +110,14 @@ class Main_Menu(QMainWindow):
             self.buttons[i].setGeometry(0, i*h, w, h)
             self.buttons[i].adjustSize()
             self.buttons[i].clicked.connect(self.insert_word)
+            self.buttons[i].setFocusPolicy(Qt.NoFocus)
         
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_suggestions)
         self.timer.start(100)
+
+        self.stay.setFocusPolicy(Qt.NoFocus)
+        self.auto.setFocusPolicy(Qt.NoFocus)
 
 
 if __name__ == '__main__':
