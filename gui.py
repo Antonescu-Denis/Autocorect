@@ -19,18 +19,23 @@ last_x, last_y = 0, 0
 
 def key_press(key):
     global thing, caps, repositions
+    
+    if key == Key.enter:
+        thing.temp_stop.setChecked(False)
+        fv.update_word('ent')
+        toggle_window(False)
+        return
+    elif thing.temp_stop.isChecked():
+        return
 
     if key == Key.space:
         fv.update_word(' ')
         toggle_window(False)
         repositions = 0
         if thing.auto.isChecked():
-            print(f"auto-{thing.buttons[0].text()}")
+             thing.insert_word(True)
     elif key == Key.backspace:
         fv.update_word('del')
-    elif key == Key.enter:
-        fv.update_word('ent')
-        toggle_window(False)
     elif key == Key.caps_lock:
         caps = not caps
     elif key == Key.shift_l or key == Key.shift_r:
@@ -61,8 +66,11 @@ def left_click(x, y, button, pressed):
 
 def toggle_window(active): 
     global thing
-      
-    if not thing.stay. isChecked(): 
+    
+    if thing.temp_stop.isChecked():
+        return
+
+    if not thing.stay.isChecked(): 
         if active:
             thing.showNormal()
         else:
@@ -77,14 +85,20 @@ class Main_Menu(QMainWindow):
         self.stay = QCheckBox(self)
         self.stay.setText('Keep window active')
         self.stay.setFont(QFont('Corbel', 14))
-        self.stay.setGeometry(10, 250, 180, 50//2)
+        self.stay.setGeometry(10, 250, 180, 25)
         self.stay.setStyleSheet('background-color: #ffffff')
 
         self.auto = QCheckBox(self)
         self.auto.setText('Auto-Insert')
         self.auto.setFont(QFont('Corbel', 14))
-        self.auto.setGeometry(10, 275, 110, 50//2)
+        self.auto.setGeometry(10, 275, 110, 25)
         self.auto.setStyleSheet('background-color: #ffffff')
+
+        self.temp_stop = QCheckBox(self)
+        self.temp_stop.setText('Temporarily stop')
+        self.temp_stop.setFont(QFont('Corbel', 14))
+        self.temp_stop.setGeometry(125, 275, 150, 25)
+        self.temp_stop.setStyleSheet('background-color: #ffffff')
 
         self.initUI()
 
@@ -93,12 +107,18 @@ class Main_Menu(QMainWindow):
             self.buttons[i].setText(f"{i+1}: {fv.suggestions[i]}")
             self.buttons[i].adjustSize()
 
-    def insert_word(self):
+    def insert_word(self, is_auto = False):
         toggle_window(False)
         fv.full_txt += ' '
         fv.word = ''
         fv.suggestions = [fv.word for _ in range(fv.max_predict)]
-        print(self.sender().text())
+        if is_auto:
+            print(f"auto-{thing.buttons[0].text()}")
+        else:
+            print(self.sender().text())
+
+    def temp_hide(self):
+        self.showMinimized()
 
     def initUI(self):
         w, h = 200, 50
@@ -111,6 +131,8 @@ class Main_Menu(QMainWindow):
             self.buttons[i].adjustSize()
             self.buttons[i].clicked.connect(self.insert_word)
             self.buttons[i].setFocusPolicy(Qt.NoFocus)
+
+        self.temp_stop.clicked.connect(self.temp_hide)
         
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_suggestions)
