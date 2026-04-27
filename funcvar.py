@@ -3,6 +3,7 @@ word = ''
 valid_word = True
 max_predict = 5
 min_length = 3
+max_candidate = 100
 suggestions = ['' for _ in range(max_predict)]
 
 def update_word(ch):
