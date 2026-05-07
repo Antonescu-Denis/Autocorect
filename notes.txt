@@ -1,9 +1,14 @@
-current goals:
+﻿current goals:
+	- word ranking
+	- non-sensitive for romanian diacritics
+		- find all words in wordlist with diacritics
+		- for each, find any word with edit distance <= number of non-diacritic "ăâîșț"
+		- manually remove gramatically wrong words
+		- save new wordlist to file and read from that if file is present
 
 functionality:
 	- have automatic/manual autocorect
 	- able to separately enable/disable autocomplete/spell checker
-	- detection runs, but only starts making suggestions at 3 word length
 	- everything lowercase when processing corrections/suggestions
 	- max allowed length difference from typed word to suggestion
 
