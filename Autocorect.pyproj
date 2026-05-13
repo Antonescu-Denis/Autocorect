@@ -27,7 +27,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.png" />
-    <Content Include="notes.txt" />
     <Content Include="wordlist.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

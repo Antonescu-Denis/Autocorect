@@ -1,17 +1,19 @@
-﻿import wordfreq, Levenshtein, os
+﻿import wordfreq, os
+import Levenshtein as lev
 
 
 full_txt = ''
 main_word = ''
 valid_word = True
 max_predict = 5
-min_length = 3
-max_candidate = 100
+min_length = 2
+max_diff = 0.65
+max_distance = 5
+max_candidates = 100
+curr_candidates = 0
 suggestions = ['-' for _ in range(max_predict)]
-candidates = []
-wordlist = []
+candidates = {}
 caps = ''
-typing = False
 
 class Tree:
     char = '-'
@@ -39,8 +41,30 @@ def reset_word():
     main_word = ''
     caps = ''
 
+def is_word_valid():
+    global main_word
+
+    if len(full_txt) == 0:
+        return True
+
+    if len(main_word) > 0 and main_word.isalpha():
+        diacritics = False
+        for ch in 'ĂăÂâÎîȘșȚț':
+            if ch in main_word:
+                diacritics = True
+                break
+        if main_word.isascii():
+            return True
+        else:
+            if diacritics:
+                return True
+            else:
+                return False
+    else:
+        return False
+
 def update_word(ch):
-    global full_txt, main_word, valid_word, suggestions, root, caps
+    global full_txt, main_word, valid_word, root, caps
     
     if ch == ' ':
         reset_word()
@@ -51,8 +75,7 @@ def update_word(ch):
             full_txt = full_txt[:-1]
             caps = full_txt[full_txt.rfind(' ')+1:]
             main_word = caps.lower()
-            if len(main_word) > 0 and (not main_word.isalpha() or not main_word.isascii()):
-                valid_word = False
+            valid_word = is_word_valid()
     elif ch == 'ent':
         full_txt = ''
         reset_word()
@@ -64,7 +87,6 @@ def update_word(ch):
                main_word += ch.lower()
         else:
             valid_word = False
-
     if not valid_word:
         reset_word()
 
@@ -86,14 +108,63 @@ def match_caps(ref):
             break
     return temp
 
+def get_words():
+    global candidates
+
+    if os.path.exists('wordlist.txt'):
+        get_word_list_file()
+    else:
+        get_word_list()
+    i = 1.00
+    while i > 0:
+        i = round(i, 2)
+        candidates[i] = []
+        i -= 0.01
+
 def get_word_list():
-    global wordlist, root
+    global root
     
+    english = set()
+    for thing in wordfreq.get_frequency_list('en', wordlist = 'large'):
+        for word in thing:
+            if len(word) >= min_length and word.isalpha():
+                english.add(word)
+    
+    w_diacritics = []
+    wo_diacritics = []
     for thing in wordfreq.get_frequency_list('ro'):
         for word in thing:
-            if word.isalpha() and len(word) >= min_length:
-                wordlist.append(word)
-                root.add_word(word)
+            if len(word) >= min_length and word.isalpha():
+                diacritics = False
+                for ch in 'ĂăÂâÎîȘșȚț':
+                    if ch in word:
+                        diacritics = True
+                        break
+                if word.isascii():
+                    if word not in english:
+                        if diacritics:
+                            w_diacritics.append(word)
+                        else:
+                            wo_diacritics.append(word)
+                else:
+                    if diacritics:
+                        if word not in english:
+                            w_diacritics.append(word)
+    romanian = w_diacritics + wo_diacritics
+
+    with open('wordlist.txt', 'w', encoding = 'utf-8') as file:
+        for word in romanian:
+            file.write(word+'\n')
+            root.add_word(word)
+    print(f"new: {len(romanian)}")
+
+def get_word_list_file():
+    global root
+    
+    with open('wordlist.txt', 'r', encoding = 'utf-8') as file:
+        for word in file:
+            word = word.strip()
+            root.add_word(word)
 
 def print_tree(main, spacing = '    '):
     if main == None:
@@ -103,6 +174,9 @@ def print_tree(main, spacing = '    '):
         print_tree(val, spacing+'    ')
 
 def search_root(main, word):
+    global curr_candidates
+
+    curr_candidates = 0
     head = main
     i = 0
     while i < len(word):
@@ -116,31 +190,60 @@ def search_root(main, word):
         select_candidates(head, word)
 
 def select_candidates(main, word = ''):
-    global candidates
+    global candidates, max_candidates, curr_candidates
 
     if main == None:
         return
     for key, val in main.branch.items():
-        if val != None:
-            select_candidates(val, word+key)
+        if curr_candidates <= max_candidates:
+            if val != None:
+                select_candidates(val, word+key)
+            else:
+                ratio = lev.ratio(main_word, word)
+                candidates[round(ratio, 2)].append(word)
+                curr_candidates += 1
         else:
-            candidates.append(word)
+            break
+
+def get_typos(main, word = ''):
+    global candidates, max_candidates, curr_candidates, main_word, max_diff, max_distance
+
+    if main == None or curr_candidates > max_candidates:
+        return
+    for key, val in main.branch.items():
+        if curr_candidates <= max_candidates:
+            if val != None:
+                get_typos(val, word+key)
+            else:
+                if len(word+key) >= len(main_word):
+                    ratio = lev.ratio(main_word, word)
+                    if ratio >= max_diff and lev.distance(main_word, word) <= max_distance:
+                        candidates[round(ratio, 2)].append(word)
+                        curr_candidates += 1
+        else:
+            break
 
 def update_candidates():
-    global root, main_word, candidates, min_length, suggestions
+    global root, main_word, candidates, min_length, suggestions, typos
     
+    for key in candidates.keys():
+        candidates[key] = []
+    suggestions = []
     if len(main_word) >= min_length:
-        candidates = []
         search_root(root, main_word)
-        suggestions = candidates[:min(len(candidates), max_predict)]
+        get_typos(root)
+
+        nums = 0
+        for key, val in candidates.items():
+            for word in val:
+                suggestions.append(word)
+                nums += 1
+                if nums >= max_predict:
+                    break
+            if nums >= max_predict:
+                break
+
         while len(suggestions) < max_predict:
             suggestions.append('-')
     else:
-        candidates = []
         suggestions = ['-' for _ in range(max_predict)]
-
-
-# word ranking:
-#     - frequency, more frequent = better
-#     - edit distance, smaller edit distance = better
-#thing = 'ĂăÂâÎîȘșȚț'

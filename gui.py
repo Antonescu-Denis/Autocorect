@@ -6,22 +6,33 @@ import sys
 from pynput import keyboard as kb
 from pynput import mouse as m
 from pynput.keyboard import Key
+import ctypes
+User32 = ctypes.WinDLL('User32.dll')
 
 
 kb_listen = None
 m_listen = None
 thing = None
 caps = False
+ctrl = False
 main_x, main_y = 300, 200
 last_x, last_y = 0, 0
 kb_controller = kb.Controller()
+typing = False
 settings_opened = False
- 
+auto_checked = False
+stay_checked = False
+dont_move_checked = False
+window_active = True
+
 
 def key_press(key):
-    global thing, caps, repositions, settings_opened
+    global thing, caps, repositions, settings_opened, auto_checked, typing, ctrl
 
-    if settings_opened or fv.typing:
+    if settings_opened or typing or ctrl:
+        return
+    if key == Key.ctrl_l or key == Key.ctrl_r:
+        ctrl = True
         return
     
     if key == Key.enter:
@@ -32,15 +43,12 @@ def key_press(key):
     if key == Key.space:
         fv.update_word(' ')
         repositions = 0
-        if thing.settings.auto.isChecked():
-             thing.insert_word(True)
+        if auto_checked:
+             thing.insert_word()
         toggle_window(False)
     elif key == Key.backspace:
         fv.update_word('del')
-        if len(fv.main_word) < 1:
-            toggle_window(False)
-        else:
-            toggle_window(True)
+        toggle_window(fv.is_word_valid())
     elif key == Key.caps_lock:
         caps = not caps
     elif key == Key.shift_l or key == Key.shift_r:
@@ -55,31 +63,34 @@ def key_press(key):
                 else:
                     toggle_window(False)
         except Exception:
-            if len(fv.main_word) == 0 or fv.valid_word == False:
-                toggle_window(False)  
+            pass
+    if len(fv.main_word) == 0 or fv.valid_word == False:
+        toggle_window(False)
                  
 def left_click(x, y, button, pressed):
-    global thing, repositions, main_x, main_y, settings_opened
+    global thing, repositions, main_x, main_y, settings_opened, dont_move_checked, typing
 
-    if thing.settings.dont_move.isChecked() or settings_opened or fv.typing:
+    if dont_move_checked or settings_opened or typing:
         return
 
     if button == m.Button.left:  
         if pressed:
-            temp = thing.mapFromGlobal(QCursor.pos())
-            if (temp.x() < 0 or temp.x() > thing.frameGeometry().width()) or (temp.y() < 0 or temp.y() > thing.frameGeometry().height()):
-                thing.move(x+10, y+50)
-                toggle_window(True)
+            try:
+                temp = thing.mapFromGlobal(QCursor.pos())
+                if (temp.x() < 0 or temp.x() > thing.frameGeometry().width()) or (temp.y() < 0 or temp.y() > thing.frameGeometry().height()):
+                    thing.move(x+10, y+50)
+                    toggle_window(True)
+            except Exception:
+                pass
 
 def toggle_window(active):
-    global thing
+    global thing, stay_checked, window_active
 
-    if not thing.settings.stay.isChecked(): 
+    if not stay_checked: 
         if active:
             thing.show()
         else:
             thing.hide()
-
 
 class Main_Menu(QMainWindow):
     def __init__(self):
@@ -93,41 +104,60 @@ class Main_Menu(QMainWindow):
         self.initUI()
 
     def update_suggestions(self):
+        global stay_checked
+
         max_button_width = 0
         fv.update_candidates()
         for i in range(fv.max_predict):
-            self.buttons[i].setText(fv.match_caps(fv.suggestions[i]))
-            self.buttons[i].adjustSize()
-            temp_w = self.buttons[i].frameGeometry().width()
-            if temp_w > max_button_width:
-                max_button_width = temp_w
-        self.setFixedWidth(max_button_width)  
+            if fv.match_caps(fv.suggestions[i]) == '-':
+                if stay_checked:
+                    self.buttons[i].setText('-')
+                    self.buttons[i].adjustSize()
+                else:
+                    self.buttons[i].hide()
+            else:
+                self.buttons[i].setText(fv.match_caps(fv.suggestions[i]))
+                self.buttons[i].adjustSize()
+                self.buttons[i].show()
+                temp_w = self.buttons[i].frameGeometry().width()
+                if temp_w > max_button_width:
+                    max_button_width = temp_w
+        self.setFixedWidth(max(100, max_button_width))  
 
-    def insert_word(self, is_auto = False):
-        global kb_controller
+    def insert_word(self):
+        global kb_controller, typing, auto_checked
         
-        fv.typing = True
+        if auto_checked:
+            if thing.buttons[0].text() == '-':
+                return
+        else:
+            if self.sender().text() == '-':
+                return
+
+        typing = True
         toggle_window(False)
         fv.suggestions = ['-' for _ in range(fv.max_predict)]
         for _ in range(len(fv.main_word)):
             kb_controller.press(Key.backspace)
             kb_controller.release(Key.backspace)
-        if is_auto:
-            kb_controller.type(thing.buttons[0].text())
-            kb_controller.type(' ')
-            fv.full_txt = fv.full_txt[:fv.full_txt.rfind(' ')+1]+thing.buttons[0].text()+' '
+        if auto_checked:
+            if thing.buttons[0].text() != '-':
+                kb_controller.type(thing.buttons[0].text())
+                kb_controller.type(' ')
+                fv.full_txt = fv.full_txt[:fv.full_txt.rfind(' ')+1]+thing.buttons[0].text()+' '
         else:
-            kb_controller.type(self.sender().text())
-            kb_controller.type(' ')
-            fv.full_txt = fv.full_txt[:fv.full_txt.rfind(' ')+1]+self.sender().text()+' '
+            if self.sender().text() != '-':
+                kb_controller.type(self.sender().text())
+                kb_controller.type(' ')
+                fv.full_txt = fv.full_txt[:fv.full_txt.rfind(' ')+1]+self.sender().text()+' '
         fv.reset_word()
-        fv.typing = False
+        typing = False
 
     def open_settings(self):
         global settings_opened
 
         settings_opened = True
-        self.settings.show()    
+        self.settings.show()
 
     def closeEvent(self, event):
         self.settings.close()
@@ -156,7 +186,7 @@ class Main_Menu(QMainWindow):
 
         self.settings_button.setFocusPolicy(Qt.NoFocus)
 
-        fv.get_word_list()
+        fv.get_words()
 
 class Settings(QWidget):
     def __init__(self):
@@ -180,8 +210,11 @@ class Settings(QWidget):
         self.initUI()
         
     def closeEvent(self, event):
-        global settings_opened
+        global settings_opened, auto_checked, stay_checked, dont_move_checked
 
+        stay_checked = self.stay.isChecked()
+        auto_checked = self.auto.isChecked()
+        dont_move_checked = self.dont_move.isChecked()
         settings_opened = False
 
     def initUI(self):
@@ -203,10 +236,12 @@ if __name__ == '__main__':
     thing.setWindowIcon(QIcon('icon.png'))
     thing.setGeometry(500, 500, main_x, main_y)
     thing.setFixedSize(main_x, main_y)
-    thing.setWindowTitle('Autocorect')
-    thing.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
-    thing.setAttribute(Qt.WA_TranslucentBackground, on = True)
-    thing.show()
+    thing.setWindowTitle('Autocorect :3')
+    thing.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus)
+    thing.setAttribute(Qt.WA_TranslucentBackground, True)
     thing.setFocusPolicy(Qt.NoFocus)
+    thing.setAttribute(Qt.WA_ShowWithoutActivating, True)
+    User32.SetWindowLongW(int(thing.winId()), -20, 134217728)
+    thing.show()
     
     sys.exit(app.exec_())
