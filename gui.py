@@ -233,7 +233,6 @@ if __name__ == '__main__':
     kb_listen.start()
     m_listen.start()
 
-    
     thing.setWindowIcon(QIcon('icon.png'))
     thing.setGeometry(500, 500, main_x, main_y)
     thing.setFixedSize(main_x, main_y)
