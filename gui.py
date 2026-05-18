@@ -18,79 +18,13 @@ ctrl = False
 main_x, main_y = 300, 200
 last_x, last_y = 0, 0
 kb_controller = kb.Controller()
-typing = False
 settings_opened = False
 auto_checked = False
 stay_checked = False
 dont_move_checked = False
 window_active = True
+typing = False
 
-
-def key_press(key):
-    global thing, caps, repositions, settings_opened, auto_checked, typing, ctrl
-
-    if settings_opened or typing or ctrl:
-        return
-    if key == Key.ctrl_l or key == Key.ctrl_r:
-        ctrl = True
-        return
-    
-    if key == Key.enter:
-        fv.update_word('ent')
-        toggle_window(False)
-        return
-
-    if key == Key.space:
-        fv.update_word(' ')
-        repositions = 0
-        if auto_checked:
-             thing.insert_word()
-        toggle_window(False)
-    elif key == Key.backspace:
-        fv.update_word('del')
-        toggle_window(fv.is_word_valid())
-    elif key == Key.caps_lock:
-        caps = not caps
-    elif key == Key.shift_l or key == Key.shift_r:
-        pass
-    else:
-        try:
-            k = key.char
-            if k:
-                fv.update_word(k.upper() if caps else k)
-                if fv.valid_word and k.isalpha() and k.isascii():
-                    toggle_window(True)
-                else:
-                    toggle_window(False)
-        except Exception:
-            pass
-    if len(fv.main_word) == 0 or fv.valid_word == False:
-        toggle_window(False)
-                 
-def left_click(x, y, button, pressed):
-    global thing, repositions, main_x, main_y, settings_opened, dont_move_checked, typing
-
-    if dont_move_checked or settings_opened or typing:
-        return
-
-    if button == m.Button.left:  
-        if pressed:
-            try:
-                temp = thing.mapFromGlobal(QCursor.pos())
-                if (temp.x() < 0 or temp.x() > thing.frameGeometry().width()) or (temp.y() < 0 or temp.y() > thing.frameGeometry().height()):
-                    thing.move(x+10, y+50)
-                    toggle_window(True)
-            except Exception:
-                pass
-
-def toggle_window(active):
-    global thing, stay_checked, window_active
-
-    if not stay_checked: 
-        if active:
-            thing.show()
-        else:
-            thing.hide()
 
 class Main_Menu(QMainWindow):
     def __init__(self):
@@ -223,6 +157,75 @@ class Settings(QWidget):
         self.dont_move.setFocusPolicy(Qt.NoFocus)
         self.setWindowIcon(QIcon('icon.png'))
         self.setWindowTitle('Settings')
+        
+app = QApplication(sys.argv)
+thing = Main_Menu()
+
+def key_press(key):
+    global thing, caps, repositions, settings_opened, auto_checked, typing, ctrl
+
+    if settings_opened or typing or ctrl:
+        return
+    if key == Key.ctrl_l or key == Key.ctrl_r:
+        ctrl = True
+        return
+    
+    if key == Key.enter:
+        fv.update_word('ent')
+        toggle_window(False)
+        return
+
+    if key == Key.space:
+        fv.update_word(' ')
+        repositions = 0
+        if auto_checked:
+             thing.insert_word()
+        toggle_window(False)
+    elif key == Key.backspace:
+        fv.update_word('del')
+        toggle_window(fv.is_word_valid())
+    elif key == Key.caps_lock:
+        caps = not caps
+    elif key == Key.shift_l or key == Key.shift_r:
+        pass
+    else:
+        try:
+            k = key.char
+            if k:
+                fv.update_word(k.upper() if caps else k)
+                if fv.valid_word and k.isalpha() and k.isascii():
+                    toggle_window(True)
+                else:
+                    toggle_window(False)
+        except Exception:
+            pass
+    if len(fv.main_word) == 0 or fv.valid_word == False:
+        toggle_window(False)
+                 
+def left_click(x, y, button, pressed):
+    global thing, repositions, main_x, main_y, settings_opened, dont_move_checked, typing
+
+    if dont_move_checked or settings_opened or typing:
+        return
+
+    if button == m.Button.left:  
+        if pressed:
+            try:
+                temp = thing.mapFromGlobal(QCursor.pos())
+                if (temp.x() < 0 or temp.x() > thing.frameGeometry().width()) or (temp.y() < 0 or temp.y() > thing.frameGeometry().height()):
+                    thing.move(x+10, y+50)
+                    toggle_window(True)
+            except Exception:
+                pass
+
+def toggle_window(active):
+    global thing, stay_checked, window_active
+
+    if not stay_checked: 
+        if active:
+            thing.show()
+        else:
+            thing.hide()
 
 if __name__ == '__main__':
     kb_listen = kb.Listener(on_press = key_press) 
@@ -230,9 +233,7 @@ if __name__ == '__main__':
     kb_listen.start()
     m_listen.start()
 
-    app = QApplication(sys.argv)
     
-    thing = Main_Menu()
     thing.setWindowIcon(QIcon('icon.png'))
     thing.setGeometry(500, 500, main_x, main_y)
     thing.setFixedSize(main_x, main_y)
