@@ -156,7 +156,7 @@ class Settings(QWidget):
         self.auto.setFocusPolicy(Qt.NoFocus)
         self.dont_move.setFocusPolicy(Qt.NoFocus)
         self.setWindowIcon(QIcon('icon.png'))
-        self.setWindowTitle('Settings')
+        self.setWindowTitle('Settings :3')
         
 app = QApplication(sys.argv)
 thing = Main_Menu()
@@ -232,7 +232,6 @@ if __name__ == '__main__':
     m_listen = m.Listener(on_click = left_click)
     kb_listen.start()
     m_listen.start()
-
     
     thing.setWindowIcon(QIcon('icon.png'))
     thing.setGeometry(500, 500, main_x, main_y)
